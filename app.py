@@ -3,6 +3,7 @@ import sys
 import subprocess
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras.models import load_model
 def install(package):
     print(f"Instaling library: {package}...")
     try:
@@ -64,7 +65,7 @@ try:
 
     if os.path.exists(model_path):
         print(f"✅ El archivo {model_path} EXISTE. Intentando cargar...")
-        model = load_model(model_path)
+        model = tf.keras.models.load_model(model_path)
         print("🎉 MODELO CARGADO EXITOSAMENTE en memoria.")
     else:
         print(f"❌ ERROR FATAL: No encuentro el archivo '{model_path}'.")
