@@ -1,6 +1,5 @@
 Flask
-tensorflow-cpu==2.15.0
-numpy<2.0
+tensorflow-cpu>=2.17.0
 gunicorn
 pillow
 google-generativeai
