@@ -44,14 +44,34 @@ from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
 app = Flask(__name__)
 
+#print("loading model... please wait....")
+#try:
+#    model = tf.keras.models.load_model('model_skin.h5')
+ #   print("Model loaded successfully.")
+#except Exception as e:
+  #  print(f"Error loading model: {e}")
+  #  print("Make sure the model file 'model_skin.h5' is in the correct directory.")
 
-print("loading model... please wait....")
+model = None  # 1. Definimos la variable vacía para evitar el NameError
+
+print("🔍 INICIANDO DIAGNÓSTICO DE CARGA...")
+print(f"📂 Directorio actual de trabajo: {os.getcwd()}")
+print(f"📄 Archivos en este directorio: {os.listdir('.')}")
+
 try:
-    model = tf.keras.models.load_model('model_skin.h5')
-    print("Model loaded successfully.")
+    # 2. Asegúrate de que este nombre sea IDÉNTICO al de tu archivo
+    model_path = 'skin_cancer_model.h5'
+
+    if os.path.exists(model_path):
+        print(f"✅ El archivo {model_path} EXISTE. Intentando cargar...")
+        model = load_model(model_path)
+        print("🎉 MODELO CARGADO EXITOSAMENTE en memoria.")
+    else:
+        print(f"❌ ERROR FATAL: No encuentro el archivo '{model_path}'.")
+        print("   ¿Está en una subcarpeta? ¿Está mal escrito el nombre?")
+
 except Exception as e:
-    print(f"Error loading model: {e}")
-    print("Make sure the model file 'model_skin.h5' is in the correct directory.")
+    print(f"🔥 ERROR CRÍTICO DE TENSORFLOW: {e}")
 
 CLASES = {
     0: 'Actinic Keratosis (akiec)',
