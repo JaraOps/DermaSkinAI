@@ -1,24 +1,49 @@
 import os
+import sys
+import subprocess
 import numpy as np
 import tensorflow as tf
+def install(package):
+    print(f"Instaling library: {package}...")
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+        print(f"{package} instaled.")
+    except Exception as e:
+        print(f"Error instaling {package}: {e}")
 try:
     import google.generativeai as genai
 except ImportError:
-    genai = None
-    print("google-generativeai no está instalado. Gemini deshabilitado.")
+    install("google-generativeai")
+    import google.generativeai as genai
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    install("python-dotenv")
+    from dotenv import load_dotenv
+
+carpeta_actual = os.path.dirname(os.path.abspath(__file__))
+ruta_env = os.path.join(carpeta_actual, '.env')
+load_dotenv(ruta_env)
+
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+if not GOOGLE_API_KEY:
+    print("ERROR: api key not found in .env")
+else:
+    print(f"Key loaded succesfully: {GOOGLE_API_KEY[:5]}...")
+    genai.configure(api_key=GOOGLE_API_KEY)
+
+
+
 from flask import Flask, render_template, request, redirect, url_for
 from PIL import Image
 import io
 import base64
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
-from dotenv import load_dotenv
 
 app = Flask(__name__)
-GOOGLE_API_KEY= os.getenv("GOOGLE_API_KEY")
-if not GOOGLE_API_KEY:
-    print("No GOOGLE_API_KEY env variable.")
-else:
-    genai.configure(api_key=GOOGLE_API_KEY)
+
 
 print("loading model... please wait....")
 try:
@@ -49,21 +74,34 @@ def prepare_image(image):
 
 def ask_gemini(diagnosis, confidence, image):
     try:
-        model_gemini = "gemini-1.5-flash"
+        model_gemini = genai.GenerativeModel('gemini-2.0-flash')
         prompt = f"""
-        Act as a professional dermatology assistant .
-
-        Context: A Deep Learning model (MobileNetV2) analyzed this image and predicted: 
-        "{diagnosis}" with {confidence:.1f}% confidence.
-
-        Your task:
+        You are an Expert Dermatologist AI.
         
-        1. Explain in 1 simple sentence what "{diagnosis}" is.
-        2. Visually analyze the attached image based on the ABCD rule (Asymmetry, Border, Color, Diameter).
-        3. Provide a clear recommendation (e.g., visit a specialist).
+        INPUT:
+        - CNN Prediction: "{diagnosis}" ({confidence:.1f}%).
+        
+        INTERNAL VISUAL ANALYSIS (DO NOT OUTPUT THIS PART):
+        1. Compare "Red Blobs" (Vascular) vs "Red Branching Lines" (BCC).
+        2. Look for "Central White Patch" (Dermatofibroma).
+        
+        DECISION LOGIC:
+        - IF you see branching red lines (arborizing vessels) + shiny skin -> DIAGNOSIS: Basal Cell Carcinoma (BCC).
+        - IF you see round red/purple clumps (lacunae) -> DIAGNOSIS: Vascular Lesion.
+        - IF you see a central white scar-like patch -> DIAGNOSIS: Dermatofibroma.
+        - OTHERWISE -> Support the CNN prediction.
 
-        Format your response in simple HTML (use <b> for bold, <ul><li> for lists).
-        IMPORTANT: Start with a disclaimer that this is an AI prototype, not a doctor."""
+        OUTPUT INSTRUCTIONS:
+        - ONLY output the final HTML result. 
+        - DO NOT list the steps, checklists, or internal thinking.
+        
+        REQUIRED HTML FORMAT:
+        <b>AI Second Opinion:</b> [Your Verdict]
+        <br>
+        <b>Visual Evidence:</b> [One clear sentence describing the features you see]
+        <br>
+        <b>Recommendation:</b> [Short medical advice]
+        """
 
         response = model_gemini.generate_content([prompt, image])
         return response.text

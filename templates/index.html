@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DermaScan AI - Hackathon Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+        background-color: #f0f2f5;
+        font-family: 'Poppins', sans-serif;
+        }
+        .main-container {
+        max-width: 800px;
+        margin-top: 40px;
+        margin-bottom: 40px;
+        }
+        .app-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        background: white;
+        overflow: hidden;
+        }
+        .header-section {
+        background: linear-gradient(135deg, #0062cc, #00c6ff);
+        color: white;
+        padding: 40px;
+        text-align: center;
+        }
+        .upload-area{
+        border: 2px dashed #cbd5e0;
+        border-radius: 15px;
+        padding: 40px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        background-color: #f8f9fa;
+        }
+        .upload-area:hover {
+        border-color: #0062cc;
+        background-color: #e9ecef;
+        }
+        .gemini-box {
+        background-color: #eef7ff;
+        border-left: 5px solid #0062cc;
+        padding: 20px;
+        border-radius: 5px;
+        margin-top: 20px;
+        }
+        #loading {
+        display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container main-container">
+        <div class="card app-card">
+            <div class="header-section">
+                <h1 class="fw-bold">DermaScan AI</h1>
+                <p class="mb-0 fs-5">Skin Lesion Analysis powered by CNN & Gemini </p>
+            </div>
+            <div class="card-body p-5">
+                <form action="/" method = "post" enctype="multipart/form-data" id="upload-form">
+                    <div class="upload-area" onclick="document.getElementById('file').click()">
+                        <div class="mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="#0062cc" class="bi bi-cloud-upload" viewbox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M4.406 1.342A5.53 5.53 0 0 1 8 0c2.69 0 4.923 2 5.166 4.579C14.758
+                                 4.804 16 6.137 16 7.733 16 9.569 14.502 11 12.687 11H10.5.5 0 0 1 0-1h2.688C13.979 10
+                                  15 8.988 15 7.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 2.825 10.328 1 8
+                                  1a4.53 4.53 0 0 0-2.941 1.1c-.757.652-1.153 1.438-1.153 2.055v.448l-.445.049C2.064
+                                  4.805 1 5.952 1 7.318 1 8.785 2.23 10 3.781 10H6a.5.5 0 0 1 0 1H3.781C1.708 11 0 9.366
+                                   0 7.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383z"/>
+                                <path fill-rule="evenodd" d="M7.646 4.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5
+                                5.707V14.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.70813-3z"/>
+                            </svg>
+                        </div>
+                        <h5>Click to Upload Skin Lesion Image</h5>
+                        <p class="text-muted small">Supports JPG, PNG </p>
+                        <input type="file" name="file" id="file" accept="image/*" style="display:none" onchange="showFileName()">
+                    </div>
+                    <p id="file-name" class="mt-2 fw-bold text-primary"></p>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg" onclick="showLoading()">Analyze Image</button>
+                    </div>
+                </form>
+                <div id="loading" class="text-center mt-4">
+                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+                    <p class="mt-3 text-muted fw-bold">Analyzing pixels & Querying Gemini AI...</p>
+                </div>
+                {% if prediction %}
+                <hr class="my_5">
+                <div class="row">
+                    <div class="col-md-5 text-center mb-3">
+                        <img src="data:image/png;base64,{{ img_data }}" class="img-fluid rounded shadow-sm border" alt="Analyzed Skin">
+                    </div>
+                    <div class="col-md-7">
+                        <h5 class="text-muted text-uppercase small ls-1">Model Prediction</h5>
+                        <h2 class="text-danger fw-bold mb-0">{{ prediction }}</h2>
+                        <p class ="badge bg-secondary mb-3 fs-6">Confidence: {{ confidence }}%</p>
+                        <div class="gemini-box">
+                            <h5 class="d-flex align-items-center fw-bold">
+                                AI Assistant Opinion
+                            </h5>
+                            <div class="mt-2 text-dark">
+                                {{ explanation | safe }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-warning mt-4 text-center small">
+                    <b>Disclaimer:</b> This project is a prototype.
+                    It is <b>NOT</b> a substitute for professional medical advice.
+                    Always consult a qualified healthcare provider for skin concerns.
+                </div>
+                <div class="text-center mt-4">
+                    <a href="/" class="btn btn-outline-secondary">Analyze Another Image</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+<script>
+    function showFileName() {
+        var fileInput = document.getElementById('file');
+        var fileNameDisplay = document.getElementById('file-name');
+        if (fileInput.files.length > 0) {
+            fileNameDisplay.textContent = "Selected File: " + fileInput.files[0].name;
+        }
+    }
+
+    function showLoading() {
+        var fileInput = document.getElementById('file');
+        if (fileInput.files.length > 0){
+        document.getElementById('upload-form').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+        }
+    }
+</script>
+</body>
+</html>
+
