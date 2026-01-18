@@ -1,7 +1,7 @@
-Flask>=2.0,<3.0
-tensorflow-cpu>=2.12.0,<3.0
-numpy>=1.21,<2.0
-gunicorn>=20.1.0
+Flask
+tensorflow-cpu==2.15.0
+numpy<2.0
+gunicorn
 pillow
 google-generativeai
 python-dotenv
