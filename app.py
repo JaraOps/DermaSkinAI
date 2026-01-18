@@ -60,7 +60,7 @@ print(f"📄 Archivos en este directorio: {os.listdir('.')}")
 
 try:
     # 2. Asegúrate de que este nombre sea IDÉNTICO al de tu archivo
-    model_path = 'skin_cancer_model.h5'
+    model_path = 'model_skin.h5'
 
     if os.path.exists(model_path):
         print(f"✅ El archivo {model_path} EXISTE. Intentando cargar...")
