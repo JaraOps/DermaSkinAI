@@ -59,7 +59,7 @@ print(f"📂 Directorio actual de trabajo: {os.getcwd()}")
 print(f"📄 Archivos en este directorio: {os.listdir('.')}")
 
 try:
-    # 2. Asegúrate de que este nombre sea IDÉNTICO al de tu archivo
+    # 2. Asegúrate de que este nombre sea IDÉNTICO al
     model_path = 'model_skin.h5'
 
     if os.path.exists(model_path):
